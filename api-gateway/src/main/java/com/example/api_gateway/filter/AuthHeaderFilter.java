@@ -1,4 +1,4 @@
-package com.example.api_gateway.filter;
+package com.example.apigateway.filter;
 
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -34,20 +34,22 @@ public class AuthHeaderFilter implements GlobalFilter, Ordered {
 
         boolean isPublicCourseRead =
                 path.startsWith("/api/courses")
+                        && request.getMethod() != null
                         && request.getMethod().name().equals("GET");
 
         if (isOpen || isPublicCourseRead) {
             return chain.filter(exchange);
         }
 
-        if (!request.getHeaders()
-                .containsKey("Authorization")) {
+        String authorization =
+                request.getHeaders().getFirst("Authorization");
+
+        if (authorization == null || authorization.isBlank()) {
 
             exchange.getResponse()
                     .setStatusCode(HttpStatus.UNAUTHORIZED);
 
-            return exchange.getResponse()
-                    .setComplete();
+            return exchange.getResponse().setComplete();
         }
 
         return chain.filter(exchange);
